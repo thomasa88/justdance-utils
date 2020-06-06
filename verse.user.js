@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name Verse
-// @version 0.1.1
+// @version 0.1.8
 // @namespace thomasa88
 // @match *://justdancenow.com/
 // @grant GM_addStyle
@@ -11,8 +11,8 @@ GM_addStyle(`
 #verse-filter-dialog {
   position: absolute;
   right: 0;
-  top: 70px;
-  height: calc(100% - 70px);
+  top: 80px;
+  height: calc(100% - 80px);
   width: 300px;
   font-size: 30px;
   z-index: 1000;
@@ -27,6 +27,7 @@ GM_addStyle(`
 #verse-filter-table {
   padding: 0px;
   width: 99%;
+  border-collapse: collapse;
 }
 
 #verse-filter-table tr {
@@ -37,13 +38,33 @@ GM_addStyle(`
   background-color: #fd9802;
 }
 
-#verse-filter-table tr:nth-child(2n) {
-  background-color: #fcdc81;
-}
-
 #verse-filter-table td {
   width: 50%;
   padding: 5px;
+  border-width: 1px 0px 1px 0px;
+  border-color: #ffdaa3;
+  border-style: solid;
+}
+
+.verse-expand-button {
+  background-image: url(https://jdnowweb-s.cdn.ubi.com/prod/main/20200601_0920/web/img/buttons/button_play.svg);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  width: 20px;
+  display: inline-block;
+  height: 20px;
+  transform: rotate(90deg);
+  vertical-align: middle;
+  cursor: pointer;
+}
+
+.verse-hidden {
+  display: none;
+}
+
+.verse-expand-hidden {
+  transform: rotate(-90deg);
 }
 `);
 
@@ -97,7 +118,7 @@ function init() {
   let parent = document.querySelector('#coverflow');
   let dialog = document.createElement('div');
   dialog.id = 'verse-filter-dialog';
-  dialog.innerHTML = '<div><input id="verse-filter-text" type="text"></div><div id="tdiv"></div>';
+  dialog.innerHTML = '<div><input id="verse-filter-text" type="text"><span id="verse-expand-button" class="verse-expand-button verse-expand-hidden"></span></div><div id="tdiv" class="verse-hidden"></div>';
   parent.appendChild(dialog);
 
   tdiv = document.getElementById('tdiv');
@@ -121,7 +142,7 @@ function init() {
   tdiv.appendChild(table);
 
   let filterText = document.getElementById('verse-filter-text');
-  filterText.placeholder = 'Filter ' + sortedSongs.length + ' songs';
+  filterText.placeholder = 'Find songs (' + sortedSongs.length + ')';
   filterText.onkeyup = (e => {
     let lower = e.target.value.toLowerCase();
     for (let i = 0; i < table.rows.length; i++) {
@@ -135,5 +156,14 @@ function init() {
     }
   });
   filterText.onclick = (e => filterText.select());
+  let expandButton = document.getElementById('verse-expand-button');
+  filterText.onfocus = (_ => {
+    tdiv.classList.remove("verse-hidden");
+    expandButton.classList.remove("verse-expand-hidden");
+  });
+  expandButton.onclick = (_ => {
+    tdiv.classList.toggle("verse-hidden");
+    expandButton.classList.toggle("verse-expand-hidden");
+  });
 }
 
