@@ -30,7 +30,7 @@ GM_addStyle(`
 #verse-filter-dialog {
   position: absolute;
   right: 0;
-  top: 80px;
+  top: 20%; /* Just below players */
   height: calc(100% - 80px);
   width: 300px;
   font-size: 30px;
