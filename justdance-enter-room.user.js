@@ -24,14 +24,35 @@
 // along with this userscript.  If not, see <https://www.gnu.org/licenses/>.
 //
 
+var autoplayClicked = false;
+var autoplayClickTries = 10;
+
 function enterRoom() {
   if (document.querySelector('.launch-game') && document.querySelector('.init-spinner') &&
       document.querySelector('.init-spinner').style.display == 'none') {
     console.log("Entering room");
     document.querySelector('.launch-game').click();
+    clickOnAutoplay();
   } else {
-    console.log("Waiting for room button to get ready")
+    console.log("Waiting for room button to get ready");
     setTimeout(enterRoom, 1000);
+  }
+}
+
+function clickOnAutoplay() {
+  console.log("Waiting for autoplay dialog");
+  document.querySelectorAll('.pop-up__wrapper:not(.pop-up--hidden)').forEach(e => {
+    if (e.querySelector('.pop-up__title').innerText.indexOf('autoplay videos have been disabled') != -1) {
+      e.querySelector('.pop-up__btn--validate').click();
+      autoplayClicked = true;
+      console.log("Autoplay dialog closed");
+    }
+  });
+  
+  // The autoplay warning is not shown on Linux (because the site assumes it to be a TV..)
+  autoplayClickTries--;
+  if (!autoplayClicked && autoplayClickTries > 0) {
+    setTimeout(clickOnAutoplay, 1000);
   }
 }
 
