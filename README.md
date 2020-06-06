@@ -11,6 +11,8 @@ Verse adds a search box to the dance room, for easy access to all available song
 
 [Installation link](https://github.com/thomasa88/justdance-utils/raw/master/verse.user.js)
 
+![](verse-screenshot.png)
+
 ## Enter Room
 
 Automatically enters the dance room and dismisses the autoplay confirmation, when opening the Just Dance Now website.
