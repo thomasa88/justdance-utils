@@ -1,7 +1,9 @@
 // ==UserScript==
 // @name Auto-enter Just Dance room
+// @description Automatically enter the room and dismiss the autoplay dialog in Just Dance Now
 // @version 0.1.0
 // @license GNU GPL v3. Copyright Thomas Axelsson 2019
+// @homepageURL https://github.com/thomasa88/justdance-utils
 // @namespace thomasa88
 // @match *://justdancenow.com/
 // @grant none
