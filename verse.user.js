@@ -48,6 +48,10 @@ GM_addStyle(`
   align-items: center;
 }
 
+#verse-filter-bar > * {
+  margin-right: 10px;
+}
+
 #verse-filter-text {
   width: 180px;
   color: #444;
@@ -117,7 +121,7 @@ GM_addStyle(`
   line-height: 20px;
 }
 
-.verse-diff-button {
+.verse-diff-button, .verse-button {
   cursor: pointer;
 }
 
@@ -133,6 +137,10 @@ GM_addStyle(`
 
 .verse-diff-button.verse-active::after {
   content: "●";
+}
+
+.verse-spacer {
+  flex-grow: 2;
 }
 `);
 
@@ -206,9 +214,11 @@ function init() {
   dialog.id = 'verse-filter-dialog';
   dialog.innerHTML = `
 <div id="verse-filter-bar">
-  <input id="verse-filter-text" type="text">
-  <span id="verse-difficulty-selector"></span>
-  <span id="verse-expand-button" class="verse-expand-button verse-expand-hidden"></span>
+  <input id="verse-filter-text" type="text" title="Search filter">
+  <span id="verse-difficulty-selector" title="Difficulty filter"></span>
+  <span id="verse-random-button" class="verse-button" title="Random song from matches">?!</span>
+  <span class="verse-spacer"></span>
+  <span id="verse-expand-button" class="verse-expand-button verse-expand-hidden" title="Show/hide list"></span>
 </div>
 <div id="verse-table-div" class="verse-hidden">
   <table id="verse-filter-table">
@@ -246,7 +256,7 @@ function init() {
   });
 
   filterText = document.getElementById('verse-filter-text');
-  filterText.placeholder = 'Find songs (' + sortedSongs.length + ')';
+  filterText.placeholder = 'Song or artist'
   filterText.onkeyup = filter;
   filterText.onclick = (e => filterText.select());
   expandButton = document.getElementById('verse-expand-button');
@@ -277,6 +287,10 @@ function init() {
     });
     diffSelector.appendChild(span);
   }
+
+  let randomButton = document.getElementById('verse-random-button');
+  randomButton.onclick = randomize;
+
   filter();
 }
 
@@ -287,6 +301,7 @@ function filter() {
     diffSelector.childNodes[i].classList.toggle('verse-disabled',
                                                 !diffCheck.checked);
   }
+
   let lower = filterText.value.toLowerCase();
   for (let i = 0; i < tbody.rows.length; i++) {
     let row = tbody.rows[i];
@@ -296,6 +311,17 @@ function filter() {
                   row.difficulty == diffSelector.difficulty));
     row.classList.toggle('verse-hidden', !match);
   }
+}
+
+function randomize() {
+  let visible = tbody.querySelectorAll('tr:not(.verse-hidden)');
+  if (visible.length == 0) {
+    alert("No visible songs! Change the filter.");
+    return;
+  }
+  
+  let randomPos = Math.floor(Math.random() * visible.length);
+  visible[randomPos].click();
 }
 
 function toggleTable(show) {
