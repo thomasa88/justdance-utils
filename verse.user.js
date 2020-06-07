@@ -7,6 +7,8 @@
 // @namespace thomasa88
 // @match *://justdancenow.com/
 // @grant GM_addStyle
+// @grant GM_getResourceText
+// @resource songcache https://pastebin.com/raw/iwT2iYLZ
 // ==/UserScript==
 
 //
@@ -29,10 +31,12 @@
 GM_addStyle(`
 #verse-filter-dialog {
   position: absolute;
-  right: 0;
+  right: 5px;
   top: 20%; /* Just below players */
   height: calc(100% - 80px);
-  width: 300px;
+  min-width: 300px;
+  max-width: 40%;
+  width: 40%;
   font-size: 30px;
   z-index: 1000;
   display: flex;
@@ -40,13 +44,15 @@ GM_addStyle(`
 }
 
 #verse-table-div {
-  overflow-y: auto;
+  overflow-y: scroll;
 }
 
 #verse-filter-table {
   padding: 0px;
   width: 99%;
   border-collapse: collapse;
+  table-layout: fixed;
+  margin: 0px;
 }
 
 #verse-filter-table tr {
@@ -58,11 +64,14 @@ GM_addStyle(`
 }
 
 #verse-filter-table td {
-  width: 50%;
   padding: 5px;
   border-width: 1px 0px 1px 0px;
   border-color: #ffdaa3;
   border-style: solid;
+}
+
+.verse-diff-col {
+  width: 3.5em;
 }
 
 .verse-expand-button {
@@ -87,6 +96,9 @@ GM_addStyle(`
 }
 `);
 
+songCache = JSON.parse(GM_getResourceText('songcache'));
+log("Loaded " + Object.keys(songCache).length + " cached songs");
+
 sortedSongs = [];
 
 function log(msg) {
@@ -97,8 +109,15 @@ function waitForPage() {
   if (unsafeWindow.require && document.querySelector('#coverflow')) {
     let songs = unsafeWindow.require('songs');
     sortedSongs = songs.getSongIds().map(id => {
-      let song = songs.getSong(id);
-      return { id: id, artist: song.artist, name: song.name };
+      let song = songCache[id];
+      if (!song) {
+        log("Fetch song: " + id)
+        song = songs.getSong(id);
+      }
+      return { id: id,
+               artist: song.artist,
+               name: song.name,
+               difficulty: song.difficulty };
     });
     log("Loaded " + sortedSongs.length + " songs");
   }
@@ -111,6 +130,7 @@ function waitForPage() {
     setTimeout(waitForPage, 1000);
   }
 }
+
 waitForPage();
 
 function init() {
@@ -137,35 +157,38 @@ function init() {
   let parent = document.querySelector('#coverflow');
   let dialog = document.createElement('div');
   dialog.id = 'verse-filter-dialog';
-  dialog.innerHTML = '<div><input id="verse-filter-text" type="text"><span id="verse-expand-button" class="verse-expand-button verse-expand-hidden"></span></div><div id="tdiv" class="verse-hidden"></div>';
+  dialog.innerHTML = '<div><input id="verse-filter-text" type="text"><span id="verse-expand-button" class="verse-expand-button verse-expand-hidden"></span></div><div id="verse-table-div" class="verse-hidden"><table id="verse-filter-table"><colgroup><col><col><col class="verse-diff-col"></colgroup><tbody id="verse-filter-tbody"></tbody></div>';
   parent.appendChild(dialog);
 
-  tdiv = document.getElementById('tdiv');
-  tdiv.id = 'verse-table-div';
-  table = document.createElement('table');
-  table.id = 'verse-filter-table';
+  let tdiv = document.getElementById('verse-table-div');
+  let tbody = document.getElementById('verse-filter-tbody');
   sortedSongs.forEach(song => {
-    let row = table.insertRow();
+    let row = tbody.insertRow();
     //let image = row.insertCell(-1);
     let artist = row.insertCell(-1);
     let title = row.insertCell(-1);
+    let difficulty = row.insertCell(-1);
     
     artist.innerText = song.artist;
     title.innerText = song.name;
+    if (song.difficulty) {
+      difficulty.innerText = "●".repeat(song.difficulty);
+    } else {
+      difficulty.innerHTML = "&nbsp;";
+    }
     row.artistLower = song.artist.toLowerCase();
     row.titleLower = song.name.toLowerCase();
+    row.difficulty = song.difficulty;
     
     row.onclick = (_ => unsafeWindow.jd.gui.songSelection.focusSong(song.id, 0));
   });
-  tdiv.innerHTML = '';
-  tdiv.appendChild(table);
 
   let filterText = document.getElementById('verse-filter-text');
   filterText.placeholder = 'Find songs (' + sortedSongs.length + ')';
   filterText.onkeyup = (e => {
     let lower = e.target.value.toLowerCase();
-    for (let i = 0; i < table.rows.length; i++) {
-      let row = table.rows[i];
+    for (let i = 0; i < tbody.rows.length; i++) {
+      let row = tbody.rows[i];
       if (row.artistLower.indexOf(lower) != -1 || row.titleLower.indexOf(lower) != -1)
       {
         row.style.display = '';
