@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Verse
 // @description Search all Just Dance Now songs in the dance room
-// @version 1.1.0
+// @version 1.2.0
 // @license GNU GPL v3. Copyright Thomas Axelsson 2019
 // @homepageURL https://github.com/thomasa88/justdance-utils
 // @namespace thomasa88
