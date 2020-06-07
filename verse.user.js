@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Verse
 // @description Search all Just Dance Now songs in the dance room
-// @version 1.0.0
+// @version 1.1.0
 // @license GNU GPL v3. Copyright Thomas Axelsson 2019
 // @homepageURL https://github.com/thomasa88/justdance-utils
 // @namespace thomasa88
@@ -43,6 +43,16 @@ GM_addStyle(`
   flex-direction: column;
 }
 
+#verse-filter-bar {
+  display: flex;
+  align-items: center;
+}
+
+#verse-filter-text {
+  width: 180px;
+  color: #444;
+}
+
 #verse-table-div {
   overflow-y: scroll;
 }
@@ -60,7 +70,7 @@ GM_addStyle(`
 }
 
 #verse-filter-table tr:hover {
-  background-color: #fd9802;
+  background-color: #fb9e5a;
 }
 
 #verse-filter-table td {
@@ -68,6 +78,7 @@ GM_addStyle(`
   border-width: 1px 0px 1px 0px;
   border-color: #ffdaa3;
   border-style: solid;
+  color: #444;
 }
 
 .verse-diff-col {
@@ -94,12 +105,48 @@ GM_addStyle(`
 .verse-expand-hidden {
   transform: rotate(-90deg);
 }
+
+#verse-difficulty-selector {
+  padding: 0px 5px 0px 5px;
+  margin: 5px;
+  border: 1px solid white;
+  border-radius: 5px;
+  height: 20px;
+  font-size: 23px;
+  vertical-align: top;
+  line-height: 20px;
+}
+
+.verse-diff-button {
+  cursor: pointer;
+}
+
+.verse-diff-button.verse-disabled {
+  opacity: 40%;
+}
+
+.verse-diff-button::after {
+  content: "○";
+  font-size: 23px;
+  line-height: 20px;
+}
+
+.verse-diff-button.verse-active::after {
+  content: "●";
+}
 `);
 
 songCache = JSON.parse(GM_getResourceText('songcache'));
 log("Loaded " + Object.keys(songCache).length + " cached songs");
 
 sortedSongs = [];
+
+filterText = null;
+diffSelector = null;
+tbody = null;
+tdiv = null;
+expandButton = null;
+diffCheck = null;
 
 function log(msg) {
   console.log('Verse:', msg);
@@ -157,11 +204,26 @@ function init() {
   let parent = document.querySelector('#coverflow');
   let dialog = document.createElement('div');
   dialog.id = 'verse-filter-dialog';
-  dialog.innerHTML = '<div><input id="verse-filter-text" type="text"><span id="verse-expand-button" class="verse-expand-button verse-expand-hidden"></span></div><div id="verse-table-div" class="verse-hidden"><table id="verse-filter-table"><colgroup><col><col><col class="verse-diff-col"></colgroup><tbody id="verse-filter-tbody"></tbody></div>';
+  dialog.innerHTML = `
+<div id="verse-filter-bar">
+  <input id="verse-filter-text" type="text">
+  <span id="verse-difficulty-selector"></span>
+  <span id="verse-expand-button" class="verse-expand-button verse-expand-hidden"></span>
+</div>
+<div id="verse-table-div" class="verse-hidden">
+  <table id="verse-filter-table">
+    <colgroup>
+      <col>
+      <col>
+      <col class="verse-diff-col">
+    </colgroup>
+    <tbody id="verse-filter-tbody"></tbody>
+  </table>
+</div>`;
   parent.appendChild(dialog);
 
-  let tdiv = document.getElementById('verse-table-div');
-  let tbody = document.getElementById('verse-filter-tbody');
+  tdiv = document.getElementById('verse-table-div');
+  tbody = document.getElementById('verse-filter-tbody');
   sortedSongs.forEach(song => {
     let row = tbody.insertRow();
     //let image = row.insertCell(-1);
@@ -178,34 +240,69 @@ function init() {
     }
     row.artistLower = song.artist.toLowerCase();
     row.titleLower = song.name.toLowerCase();
-    row.difficulty = song.difficulty;
+    row.difficulty = song.difficulty || 0;
     
     row.onclick = (_ => unsafeWindow.jd.gui.songSelection.focusSong(song.id, 0));
   });
 
-  let filterText = document.getElementById('verse-filter-text');
+  filterText = document.getElementById('verse-filter-text');
   filterText.placeholder = 'Find songs (' + sortedSongs.length + ')';
-  filterText.onkeyup = (e => {
-    let lower = e.target.value.toLowerCase();
-    for (let i = 0; i < tbody.rows.length; i++) {
-      let row = tbody.rows[i];
-      if (row.artistLower.indexOf(lower) != -1 || row.titleLower.indexOf(lower) != -1)
-      {
-        row.style.display = '';
-      } else  {
-        row.style.display = 'none';
-      }
-    }
-  });
+  filterText.onkeyup = filter;
   filterText.onclick = (e => filterText.select());
-  let expandButton = document.getElementById('verse-expand-button');
+  expandButton = document.getElementById('verse-expand-button');
   filterText.onfocus = (_ => {
-    tdiv.classList.remove("verse-hidden");
-    expandButton.classList.remove("verse-expand-hidden");
+    toggleTable(true);
   });
   expandButton.onclick = (_ => {
-    tdiv.classList.toggle("verse-hidden");
-    expandButton.classList.toggle("verse-expand-hidden");
+    toggleTable();
   });
+
+  diffSelector = document.getElementById('verse-difficulty-selector');
+  diffSelector.difficulty = 2;
+  let diffCheckSpan = document.createElement('span');
+  //diffCheckSpan.classList.add('verse-diff-button');
+  diffCheck = document.createElement('input');
+  diffCheck.type = 'checkbox';
+  diffCheck.onchange = (e => { toggleTable(true); filter(); });
+  diffCheckSpan.appendChild(diffCheck);
+  diffSelector.appendChild(diffCheckSpan);
+  for (let i = 1; i < 5; i++) {
+    let span = document.createElement('span');
+    span.classList.add('verse-diff-button');
+    span.onclick = (e => {
+      diffCheck.checked = true;
+      diffSelector.difficulty = i;
+      toggleTable(true);
+      filter();
+    });
+    diffSelector.appendChild(span);
+  }
+  filter();
 }
 
+function filter() {
+  for (let i = 1; i < diffSelector.childNodes.length; i++) {
+    diffSelector.childNodes[i].classList.toggle('verse-active',
+                                                i <= diffSelector.difficulty);
+    diffSelector.childNodes[i].classList.toggle('verse-disabled',
+                                                !diffCheck.checked);
+  }
+  let lower = filterText.value.toLowerCase();
+  for (let i = 0; i < tbody.rows.length; i++) {
+    let row = tbody.rows[i];
+    let match = ((row.artistLower.indexOf(lower) != -1 ||
+                  row.titleLower.indexOf(lower) != -1) &&
+                 (!diffCheck.checked ||
+                  row.difficulty == diffSelector.difficulty));
+    row.classList.toggle('verse-hidden', !match);
+  }
+}
+
+function toggleTable(show) {
+  let hide = !show;
+  if (typeof show === 'undefined') {
+    hide = undefined;
+  }
+  tdiv.classList.toggle("verse-hidden", hide);
+  expandButton.classList.toggle("verse-expand-hidden", hide);
+}
