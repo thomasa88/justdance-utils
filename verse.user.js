@@ -1,14 +1,14 @@
 // ==UserScript==
 // @name Verse
 // @description Search all Just Dance Now songs in the dance room
-// @version 1.2.0
+// @version 1.2.1
 // @license GNU GPL v3. Copyright Thomas Axelsson 2019
 // @homepageURL https://github.com/thomasa88/justdance-utils
 // @namespace thomasa88
 // @match *://justdancenow.com/
 // @grant GM_addStyle
 // @grant GM_getResourceText
-// @resource songcache https://pastebin.com/raw/iwT2iYLZ
+// @resource songcache https://pastebin.com/raw/f7XZWs8k
 // ==/UserScript==
 
 //
@@ -144,6 +144,11 @@ GM_addStyle(`
 }
 `);
 
+DIFFICULTY_MAP = { 'Easy': 1,
+                   'Normal': 2,
+                   'Hard': 3,
+                   'Extreme': 4 };
+
 songCache = JSON.parse(GM_getResourceText('songcache'));
 log("Loaded " + Object.keys(songCache).length + " cached songs");
 
@@ -163,18 +168,31 @@ function log(msg) {
 function waitForPage() {
   if (unsafeWindow.require && document.querySelector('#coverflow')) {
     let songs = unsafeWindow.require('songs');
+    let newSongs = {};
     sortedSongs = songs.getSongIds().map(id => {
       let song = songCache[id];
       if (!song) {
         log("Fetch song: " + id)
-        song = songs.getSong(id);
+        let onlineSong = songs.getSong(id);
+        song = {}
+        for (const attr of ['id', 'name', 'artist']) {
+          song[attr] = onlineSong[attr];
+        }
+        let difficulty = onlineSong['Difficulty'];
+        if (typeof difficulty === 'undefined') {
+          difficulty = null;
+        } else if (DIFFICULTY_MAP.hasOwnProperty(difficulty)) {
+          difficulty = DIFFICULTY_MAP[difficulty];
+        }
+        song['difficulty'] = difficulty;
+        newSongs[song.id] = song;
       }
-      return { id: id,
-               artist: song.artist,
-               name: song.name,
-               difficulty: song.difficulty };
+      return song;
     });
     log("Loaded " + sortedSongs.length + " songs");
+    if (Object.keys(newSongs).length > 0) {
+      log("Add to cache: " + JSON.stringify(newSongs));
+    }
   }
 
   if (sortedSongs.length > 0) {
