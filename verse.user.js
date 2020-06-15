@@ -298,8 +298,13 @@ function init() {
     let span = document.createElement('span');
     span.classList.add('verse-diff-button');
     span.onclick = (e => {
-      diffCheck.checked = true;
-      diffSelector.difficulty = i;
+      if (diffCheck.checked && diffSelector.difficulty == i) {
+        // Disable filtering if clicking same difficulty twice
+        diffCheck.checked = false;
+      } else {
+        diffCheck.checked = true;
+        diffSelector.difficulty = i;
+      }
       toggleTable(true);
       filter();
     });
