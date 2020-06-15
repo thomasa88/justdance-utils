@@ -33,7 +33,7 @@ GM_addStyle(`
   position: absolute;
   right: 5px;
   top: 20%; /* Just below players */
-  height: calc(100% - 80px);
+  max-height: 80%;
   min-width: 300px;
   max-width: 40%;
   width: 40%;
@@ -117,8 +117,8 @@ GM_addStyle(`
   border-radius: 5px;
   height: 20px;
   font-size: 23px;
-  vertical-align: top;
   line-height: 20px;
+  box-sizing: unset;
 }
 
 .verse-diff-button, .verse-button {
