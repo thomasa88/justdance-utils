@@ -262,9 +262,11 @@ function init() {
   dialog.id = 'verse-filter-dialog';
   dialog.innerHTML = `
 <div id="verse-filter-bar">
-  <input id="verse-filter-text" type="text" title="Search filter">
-  <span id="verse-difficulty-selector" title="Difficulty filter"></span>
-  <span id="verse-favorites" title="Webpage favorites"></span>
+  <input id="verse-filter-text" type="text"
+    title="Song/artist"
+    placeholder="Song or artist">
+  <span id="verse-difficulty-selector"></span>
+  <span id="verse-favorites"></span>
   <span id="verse-random-button" class="verse-button" title="Random song from matches">?!</span>
   <span class="verse-spacer"></span>
   <span id="verse-expand-button" class="verse-expand-button verse-expand-hidden" title="Show/hide list"></span>
@@ -346,7 +348,6 @@ function init() {
   });
 
   filterText = document.getElementById('verse-filter-text');
-  filterText.placeholder = 'Song or artist'
   filterText.onkeyup = filter;
   filterText.onclick = (e => filterText.select());
   expandButton = document.getElementById('verse-expand-button');
@@ -370,6 +371,12 @@ function init() {
     let span = document.createElement('span');
     span.classList.add('verse-button');
     span.classList.add('verse-diff-button');
+    for (let diffName in DIFFICULTY_MAP) {
+      if (DIFFICULTY_MAP[diffName] == i) {
+        span.title = 'Difficulty: ' + diffName;
+        break;
+      }
+    }
     span.onclick = (e => {
       if (diffCheck.checked && diffSelector.difficulty == i) {
         // Disable filtering if clicking same difficulty twice
@@ -394,8 +401,10 @@ function init() {
     // Failing to show Blob, so skipping GM_getResourceURL
     //span.style.backgroundImage = 'url("' + GM_getResourceURL('fav' + (i+1)) + '")';
     if (i == 0) {
+      span.title = 'User mobile phone favorites'
       span.style.backgroundImage = `url(${RESOURCE_URL}/favorite-mobile-white.svg)`;
     } else {
+      span.title = 'Favorite list ' + i;
       span.style.backgroundImage = `url(${RESOURCE_URL}/favorite${i}-white.svg)`;
     }
     span.onclick = (e => {
