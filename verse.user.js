@@ -8,6 +8,9 @@
 // @match *://justdancenow.com/
 // @grant GM_addStyle
 // @grant GM_getResourceText
+// @grant GM_info
+// @grant GM_setValue
+// @grant GM_getValue
 // @resource songcache https://pastebin.com/raw/f7XZWs8k
 // ==/UserScript==
 
@@ -83,10 +86,15 @@ GM_addStyle(`
   border-color: #ffdaa3;
   border-style: solid;
   color: #444;
+  vertical-align: middle;
 }
 
 .verse-diff-col {
   width: 3.5em;
+}
+
+.verse-fav-col {
+  width: 85px;
 }
 
 .verse-expand-button {
@@ -121,11 +129,12 @@ GM_addStyle(`
   box-sizing: unset;
 }
 
-.verse-diff-button, .verse-button {
+.verse-button {
   cursor: pointer;
+  display: inline-block;
 }
 
-.verse-diff-button.verse-disabled {
+.verse-button.verse-disabled, .verse-button.verse-inactive {
   opacity: 40%;
 }
 
@@ -139,23 +148,41 @@ GM_addStyle(`
   content: "●";
 }
 
+.verse-favorite-button {
+  width: 23px;
+  height: 23px;
+  background-size: contain;
+  margin-right: 1px;
+}
+
 .verse-spacer {
   flex-grow: 2;
 }
+
+.verse-invert-color {
+  filter: invert(100%);
+}
 `);
+
+RESOURCE_URL = 'https://raw.githubusercontent.com/thomasa88/justdance-utils/master/verse-resources'
 
 DIFFICULTY_MAP = { 'Easy': 1,
                    'Normal': 2,
                    'Hard': 3,
                    'Extreme': 4 };
 
+log("Verse " + GM_info.script.version + " running in " +
+    GM_info.scriptHandler + " " + GM_info.version);
+
 songCache = JSON.parse(GM_getResourceText('songcache'));
 log("Loaded " + Object.keys(songCache).length + " cached songs");
 
 sortedSongs = [];
+favorites = {};
 
 filterText = null;
 diffSelector = null;
+favoriteSelector = null;
 tbody = null;
 tdiv = null;
 expandButton = null;
@@ -207,6 +234,8 @@ function waitForPage() {
 waitForPage();
 
 function init() {
+  loadFavorites();
+  
   sortedSongs.sort((a, b) => {
     let aArtist = a.artist.toLowerCase();
     let bArtist = b.artist.toLowerCase();
@@ -234,6 +263,7 @@ function init() {
 <div id="verse-filter-bar">
   <input id="verse-filter-text" type="text" title="Search filter">
   <span id="verse-difficulty-selector" title="Difficulty filter"></span>
+  <span id="verse-favorites" title="Webpage favorites"></span>
   <span id="verse-random-button" class="verse-button" title="Random song from matches">?!</span>
   <span class="verse-spacer"></span>
   <span id="verse-expand-button" class="verse-expand-button verse-expand-hidden" title="Show/hide list"></span>
@@ -244,6 +274,7 @@ function init() {
       <col>
       <col>
       <col class="verse-diff-col">
+      <col class="verse-fav-col">
     </colgroup>
     <tbody id="verse-filter-tbody"></tbody>
   </table>
@@ -258,6 +289,7 @@ function init() {
     let artist = row.insertCell(-1);
     let title = row.insertCell(-1);
     let difficulty = row.insertCell(-1);
+    let favoritesCell = row.insertCell(-1);
     
     artist.innerText = song.artist;
     title.innerText = song.name;
@@ -266,6 +298,32 @@ function init() {
     } else {
       difficulty.innerHTML = "&nbsp;";
     }
+
+    for (let i = 0; i < 4; i++) {
+      let span = document.createElement('span');
+      span.classList.add('verse-button', 'verse-favorite-button', 'verse-invert-color');
+      if (i == 0) {
+        span.style.backgroundImage = `url(${RESOURCE_URL}/favorite-mobile-white.svg)`;
+      } else {
+        span.classList.toggle('verse-inactive',
+                              (favorites[i].indexOf(song.id) == -1));
+        
+        span.style.backgroundImage = `url(${RESOURCE_URL}/favorite${i}-white.svg)`;
+        span.onclick = (e => {
+          span.classList.toggle('verse-inactive');
+          if (span.classList.contains('verse-inactive')) {
+            removeFavorite(i, song.id);
+            filter();
+          } else {
+            addFavorite(i, song.id);
+          }
+        });
+      }
+      
+      favoritesCell.appendChild(span);
+    }
+
+    row.songId = song.id;
     row.artistLower = song.artist.toLowerCase();
     row.titleLower = song.name.toLowerCase();
     row.difficulty = song.difficulty || 0;
@@ -279,7 +337,7 @@ function init() {
   filterText.onclick = (e => filterText.select());
   expandButton = document.getElementById('verse-expand-button');
   filterText.onfocus = (_ => {
-    toggleTable(true);
+    showTable();
   });
   expandButton.onclick = (_ => {
     toggleTable();
@@ -291,11 +349,12 @@ function init() {
   //diffCheckSpan.classList.add('verse-diff-button');
   diffCheck = document.createElement('input');
   diffCheck.type = 'checkbox';
-  diffCheck.onchange = (e => { toggleTable(true); filter(); });
+  diffCheck.onchange = (e => { showTable(); filter(); });
   diffCheckSpan.appendChild(diffCheck);
   diffSelector.appendChild(diffCheckSpan);
   for (let i = 1; i < 5; i++) {
     let span = document.createElement('span');
+    span.classList.add('verse-button');
     span.classList.add('verse-diff-button');
     span.onclick = (e => {
       if (diffCheck.checked && diffSelector.difficulty == i) {
@@ -305,7 +364,7 @@ function init() {
         diffCheck.checked = true;
         diffSelector.difficulty = i;
       }
-      toggleTable(true);
+      showTable();
       filter();
     });
     diffSelector.appendChild(span);
@@ -313,6 +372,25 @@ function init() {
 
   let randomButton = document.getElementById('verse-random-button');
   randomButton.onclick = randomize;
+
+  favoriteSelector = document.getElementById('verse-favorites');
+  for (let i = 0; i < 4; i++) {
+    let span = document.createElement('span');
+    span.classList.add('verse-button', 'verse-favorite-button', 'verse-inactive');
+    // Failing to show Blob, so skipping GM_getResourceURL
+    //span.style.backgroundImage = 'url("' + GM_getResourceURL('fav' + (i+1)) + '")';
+    if (i == 0) {
+      span.style.backgroundImage = `url(${RESOURCE_URL}/favorite-mobile-white.svg)`;
+    } else {
+      span.style.backgroundImage = `url(${RESOURCE_URL}/favorite${i}-white.svg)`;
+    }
+    span.onclick = (e => {
+      span.classList.toggle('verse-inactive');
+      showTable();
+      filter();
+    });
+    favoriteSelector.appendChild(span);
+  }
 
   filter();
 }
@@ -325,6 +403,21 @@ function filter() {
                                                 !diffCheck.checked);
   }
 
+  let filterFavorites = [];
+  for (let i = 0; i < favoriteSelector.childNodes.length; i++) {
+    if (!favoriteSelector.childNodes[i].classList.contains('verse-inactive')) {
+      if (i == 0) {
+        let playerFavs = [];
+        for (let playerId in unsafeWindow.jd.gui.core.players) {
+          playerFavs = playerFavs.concat(jd.gui.core.players[playerId].favorites);
+        }
+        filterFavorites.push(playerFavs);
+      } else {
+        filterFavorites.push(favorites[i]);
+      }
+    }
+  }
+
   let lower = filterText.value.toLowerCase();
   for (let i = 0; i < tbody.rows.length; i++) {
     let row = tbody.rows[i];
@@ -332,6 +425,27 @@ function filter() {
                   row.titleLower.indexOf(lower) != -1) &&
                  (!diffCheck.checked ||
                   row.difficulty == diffSelector.difficulty));
+    if (match && filterFavorites.length > 0) {
+      let inFavorites = false;
+      for (let favSet of filterFavorites) {
+        if (favSet.indexOf(row.songId) != -1) {
+          inFavorites = true;
+          break;
+        }
+      }
+      if (!inFavorites) {
+        match = false;
+      }
+    }
+    row.classList.toggle('verse-hidden', !match);
+  }
+}
+
+function updateTableUserFavorites() {
+  for (let i = 0; i < tbody.rows.length; i++) {
+    let row = tbody.rows[i];
+    // The first favorite button is the user/mobile favorite button
+    let favButton = row.querySelector('verse-favorite-button');
     row.classList.toggle('verse-hidden', !match);
   }
 }
@@ -347,6 +461,27 @@ function randomize() {
   visible[randomPos].click();
 }
 
+function loadFavorites() {
+  for (let i = 1; i < 4; i++) {
+    favorites[i] = GM_getValue('favorites' + i, []);
+  }
+  // TODO: Mobile favorites
+}
+
+function addFavorite(list, songId) {
+  if (favorites[list].indexOf(songId) == -1) {
+    favorites[list].push(songId);
+    GM_setValue('favorites' + list, favorites[list]);
+  }
+}
+
+function removeFavorite(list, songId) {
+  if (favorites[list].indexOf(songId) != -1) {
+    favorites[list].splice(songId, 1);
+    GM_setValue('favorites' + list, favorites[list]);
+  }
+}
+
 function toggleTable(show) {
   let hide = !show;
   if (typeof show === 'undefined') {
@@ -354,4 +489,8 @@ function toggleTable(show) {
   }
   tdiv.classList.toggle("verse-hidden", hide);
   expandButton.classList.toggle("verse-expand-hidden", hide);
+}
+
+function showTable() {
+  toggleTable(true);
 }

@@ -16,7 +16,7 @@
    version="1.1"
    id="svg8"
    inkscape:version="0.92.5 (2060ec1f9f, 2020-04-08)"
-   sodipodi:docname="favorite1.svg">
+   sodipodi:docname="favorite2-white.svg">
   <defs
      id="defs2">
     <mask
@@ -103,8 +103,8 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1"
-     inkscape:cx="-57.270271"
+     inkscape:zoom="0.70710678"
+     inkscape:cx="-503.45465"
      inkscape:cy="34.332521"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
@@ -127,7 +127,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -136,24 +136,6 @@
      inkscape:groupmode="layer"
      id="layer1"
      transform="translate(-4.6518766,-5.3058891)">
-    <path
-       sodipodi:type="star"
-       style="display:inline;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
-       id="path834"
-       sodipodi:sides="5"
-       sodipodi:cx="26.058104"
-       sodipodi:cy="27.813728"
-       sodipodi:r1="22.507839"
-       sodipodi:r2="11.25392"
-       sodipodi:arg1="-1.5707963"
-       sodipodi:arg2="-0.9424778"
-       inkscape:flatsided="false"
-       inkscape:rounded="0"
-       inkscape:randomized="0"
-       d="M 26.058104,5.3058891 32.672991,18.709116 47.464331,20.858424 36.761217,31.291381 39.287879,46.022953 26.058104,39.067648 12.828327,46.022952 15.35499,31.291381 4.6518766,20.858423 19.443216,18.709116 Z"
-       inkscape:transform-center-y="-2.1493077"
-       clip-path="none"
-       mask="url(#mask4975)" />
     <text
        id="text4794"
        y="37.04298"
@@ -164,7 +146,7 @@
          y="37.04298"
          x="-64.346153"
          id="tspan4792"
-         sodipodi:role="line">1</tspan></text>
+         sodipodi:role="line">2</tspan></text>
     <path
        mask="url(#mask4975)"
        clip-path="none"
@@ -181,18 +163,8 @@
        sodipodi:cx="26.058104"
        sodipodi:sides="5"
        id="path4983"
-       style="display:inline;fill:#fffff4;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
-       sodipodi:type="star" />
-    <text
-       xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.58333302px;line-height:1.25;font-family:'Liberation Sans';-inkscape-font-specification:'Liberation Sans';font-variant-ligatures:normal;font-variant-position:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-alternates:normal;font-feature-settings:normal;text-indent:0;text-align:start;text-decoration:none;text-decoration-line:none;text-decoration-style:solid;text-decoration-color:#000000;letter-spacing:0px;word-spacing:0px;text-transform:none;writing-mode:lr-tb;direction:ltr;text-orientation:mixed;dominant-baseline:auto;baseline-shift:baseline;text-anchor:start;white-space:normal;shape-padding:0;opacity:1;vector-effect:none;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
-       x="-64.346153"
-       y="37.04298"
-       id="text4987"><tspan
-         sodipodi:role="line"
-         id="tspan4985"
-         x="-64.346153"
-         y="46.575966"
-         style="font-weight:bold;font-size:22.57777786px;fill:#000000;stroke-width:0.26458332" /></text>
+       style="display:inline;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       sodipodi:type="star"
+       inkscape:label="icon" />
   </g>
 </svg>
