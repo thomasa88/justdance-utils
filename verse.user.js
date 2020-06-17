@@ -94,7 +94,7 @@ GM_addStyle(`
 }
 
 .verse-fav-col {
-  width: 85px;
+  width: 110px;
 }
 
 .verse-expand-button {
@@ -304,6 +304,10 @@ function init() {
       span.classList.add('verse-button', 'verse-favorite-button', 'verse-invert-color');
       if (i == 0) {
         span.style.backgroundImage = `url(${RESOURCE_URL}/favorite-mobile-white.svg)`;
+        span.onclick = (e => {
+          alert('User favorites can only be modified in the mobile app');
+          e.stopPropagation();
+        });
       } else {
         span.classList.toggle('verse-inactive',
                               (favorites[i].indexOf(song.id) == -1));
@@ -317,6 +321,7 @@ function init() {
           } else {
             addFavorite(i, song.id);
           }
+          e.stopPropagation();
         });
       }
       
@@ -396,6 +401,8 @@ function init() {
 }
 
 function filter() {
+  updateTableUserFavorites();
+  
   for (let i = 1; i < diffSelector.childNodes.length; i++) {
     diffSelector.childNodes[i].classList.toggle('verse-active',
                                                 i <= diffSelector.difficulty);
@@ -407,11 +414,7 @@ function filter() {
   for (let i = 0; i < favoriteSelector.childNodes.length; i++) {
     if (!favoriteSelector.childNodes[i].classList.contains('verse-inactive')) {
       if (i == 0) {
-        let playerFavs = [];
-        for (let playerId in unsafeWindow.jd.gui.core.players) {
-          playerFavs = playerFavs.concat(jd.gui.core.players[playerId].favorites);
-        }
-        filterFavorites.push(playerFavs);
+        filterFavorites.push(getPlayerFavs());
       } else {
         filterFavorites.push(favorites[i]);
       }
@@ -442,12 +445,22 @@ function filter() {
 }
 
 function updateTableUserFavorites() {
+  let playerFavs = getPlayerFavs();
   for (let i = 0; i < tbody.rows.length; i++) {
     let row = tbody.rows[i];
     // The first favorite button is the user/mobile favorite button
-    let favButton = row.querySelector('verse-favorite-button');
-    row.classList.toggle('verse-hidden', !match);
+    let favButton = row.querySelector('.verse-favorite-button');
+    favButton.classList.toggle('verse-inactive',
+                               (playerFavs.indexOf(row.songId) == -1));
   }
+}
+
+function getPlayerFavs() {
+  let playerFavs = [];
+  for (let playerId in unsafeWindow.jd.gui.core.players) {
+    playerFavs = playerFavs.concat(jd.gui.core.players[playerId].favorites);
+  }
+  return playerFavs;
 }
 
 function randomize() {
