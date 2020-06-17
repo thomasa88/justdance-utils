@@ -64,7 +64,7 @@ GM_addStyle(`
   overflow-y: scroll;
 }
 
-#verse-filter-table {
+.verse-filter-table {
   padding: 0px;
   width: 99%;
   border-collapse: collapse;
@@ -72,15 +72,15 @@ GM_addStyle(`
   margin: 0px;
 }
 
-#verse-filter-table tr {
+.verse-filter-table tr {
   cursor: pointer;
 }
 
-#verse-filter-table tr:hover {
+.verse-filter-table tr:hover {
   background-color: #fb9e5a;
 }
 
-#verse-filter-table td {
+.verse-filter-table td {
   padding: 5px;
   border-width: 1px 0px 1px 0px;
   border-color: #ffdaa3;
@@ -185,6 +185,7 @@ diffSelector = null;
 favoriteSelector = null;
 tbody = null;
 tdiv = null;
+noMatchTable = null;
 expandButton = null;
 diffCheck = null;
 
@@ -269,7 +270,13 @@ function init() {
   <span id="verse-expand-button" class="verse-expand-button verse-expand-hidden" title="Show/hide list"></span>
 </div>
 <div id="verse-table-div" class="verse-hidden">
-  <table id="verse-filter-table">
+  <!-- Using a table for "no match" to get the same styling -->
+  <table id="verse-filter-no-match-table" class="verse-filter-table verse-hidden">
+    <tbody id="verse-filter-no-match-tbody">
+      <tr><td>No songs match the current filter</td></tr>
+    </tbody>
+  </table>
+  <table id="verse-filter-table" class="verse-filter-table">
     <colgroup>
       <col>
       <col>
@@ -281,6 +288,8 @@ function init() {
 </div>`;
   parent.appendChild(dialog);
 
+  noMatchTable = document.getElementById('verse-filter-no-match-table');
+  
   tdiv = document.getElementById('verse-table-div');
   tbody = document.getElementById('verse-filter-tbody');
   sortedSongs.forEach(song => {
@@ -422,6 +431,7 @@ function filter() {
   }
 
   let lower = filterText.value.toLowerCase();
+  let matchCount = 0;
   for (let i = 0; i < tbody.rows.length; i++) {
     let row = tbody.rows[i];
     let match = ((row.artistLower.indexOf(lower) != -1 ||
@@ -441,7 +451,11 @@ function filter() {
       }
     }
     row.classList.toggle('verse-hidden', !match);
+    if (match) {
+      matchCount++;
+    }
   }
+  noMatchTable.classList.toggle('verse-hidden', matchCount != 0);
 }
 
 function updateTableUserFavorites() {
