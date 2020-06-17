@@ -31,6 +31,8 @@
 // along with this userscript.  If not, see <https://www.gnu.org/licenses/>.
 //
 
+//RESOURCE_URL = 'https://raw.githubusercontent.com/thomasa88/justdance-utils/master/verse-resources'
+
 GM_addStyle(`
 #verse-filter-dialog {
   position: absolute;
@@ -119,16 +121,17 @@ GM_addStyle(`
 }
 
 #verse-difficulty-selector {
-  padding: 0px 5px 0px 5px;
+  /*padding: 0px 5px 0px 5px;*/
   border-radius: 5px;
-  font-size: 23px;
-  line-height: 20px;
   box-sizing: unset;
-  background: #ffffff33;
+  /*background: #ffffff33;*/
+  height: 25px;
+  display: flex;
+  align-items: center;
 }
 
 #verse-difficulty-selector.verse-active {
-  background: #ffffff55;
+  /*background: #ffffff55;*/
 }
 
 .verse-button {
@@ -136,24 +139,30 @@ GM_addStyle(`
   display: inline-block;
 }
 
-.verse-button.verse-disabled, .verse-button.verse-inactive {
+.verse-button.verse-disabled, .verse-inactive {
   opacity: 40%;
 }
 
-.verse-diff-button::after {
-  content: "○";
-  font-size: 23px;
-  line-height: 20px;
+.verse-diff-button {
+  background-image: url(${RESOURCE_URL}/score-bar-white.svg);
+  width: 9px;
+  height: 17px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
 }
 
-.verse-diff-button.verse-active::after {
-  content: "●";
+#verse-favorites {
+  display: flex;
+  align-items: center;
 }
 
 .verse-favorite-button {
   width: 23px;
   height: 23px;
   background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
   margin-right: 1px;
 }
 
@@ -165,8 +174,6 @@ GM_addStyle(`
   filter: invert(100%);
 }
 `);
-
-RESOURCE_URL = 'https://raw.githubusercontent.com/thomasa88/justdance-utils/master/verse-resources'
 
 DIFFICULTY_MAP = { 'Easy': 1,
                    'Normal': 2,
@@ -418,12 +425,14 @@ function filter() {
 
   diffSelector.classList.toggle('verse-active', diffSelector.enabled);
   for (let i = 1; i < diffSelector.childNodes.length + 1; i++) {
-    diffSelector.childNodes[i-1].classList.toggle('verse-active',
-                                                  (i <= diffSelector.difficulty &&
+    diffSelector.childNodes[i-1].classList.toggle('verse-inactive',
+                                                  (i > diffSelector.difficulty &&
                                                   diffSelector.enabled));
     diffSelector.childNodes[i-1].classList.toggle('verse-disabled',
                                                   !diffSelector.enabled);
   }
+
+  filterText.classList.toggle('verse-inactive', filterText.value.length == 0);
 
   let filterFavorites = [];
   for (let i = 0; i < favoriteSelector.childNodes.length; i++) {
