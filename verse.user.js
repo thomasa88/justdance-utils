@@ -120,13 +120,15 @@ GM_addStyle(`
 
 #verse-difficulty-selector {
   padding: 0px 5px 0px 5px;
-  margin: 5px;
-  border: 1px solid white;
   border-radius: 5px;
-  height: 20px;
   font-size: 23px;
   line-height: 20px;
   box-sizing: unset;
+  background: #ffffff33;
+}
+
+#verse-difficulty-selector.verse-active {
+  background: #ffffff55;
 }
 
 .verse-button {
@@ -187,7 +189,6 @@ tbody = null;
 tdiv = null;
 noMatchTable = null;
 expandButton = null;
-diffCheck = null;
 
 function log(msg) {
   console.log('Verse:', msg);
@@ -360,13 +361,7 @@ function init() {
 
   diffSelector = document.getElementById('verse-difficulty-selector');
   diffSelector.difficulty = 2;
-  let diffCheckSpan = document.createElement('span');
-  //diffCheckSpan.classList.add('verse-diff-button');
-  diffCheck = document.createElement('input');
-  diffCheck.type = 'checkbox';
-  diffCheck.onchange = (e => { showTable(); filter(); });
-  diffCheckSpan.appendChild(diffCheck);
-  diffSelector.appendChild(diffCheckSpan);
+  diffSelector.enabled = false;
   for (let i = 1; i < 5; i++) {
     let span = document.createElement('span');
     span.classList.add('verse-button');
@@ -378,11 +373,11 @@ function init() {
       }
     }
     span.onclick = (e => {
-      if (diffCheck.checked && diffSelector.difficulty == i) {
+      if (diffSelector.enabled && diffSelector.difficulty == i) {
         // Disable filtering if clicking same difficulty twice
-        diffCheck.checked = false;
+        diffSelector.enabled = false;
       } else {
-        diffCheck.checked = true;
+        diffSelector.enabled = true;
         diffSelector.difficulty = i;
       }
       showTable();
@@ -420,12 +415,14 @@ function init() {
 
 function filter() {
   updateTableUserFavorites();
-  
-  for (let i = 1; i < diffSelector.childNodes.length; i++) {
-    diffSelector.childNodes[i].classList.toggle('verse-active',
-                                                i <= diffSelector.difficulty);
-    diffSelector.childNodes[i].classList.toggle('verse-disabled',
-                                                !diffCheck.checked);
+
+  diffSelector.classList.toggle('verse-active', diffSelector.enabled);
+  for (let i = 1; i < diffSelector.childNodes.length + 1; i++) {
+    diffSelector.childNodes[i-1].classList.toggle('verse-active',
+                                                  (i <= diffSelector.difficulty &&
+                                                  diffSelector.enabled));
+    diffSelector.childNodes[i-1].classList.toggle('verse-disabled',
+                                                  !diffSelector.enabled);
   }
 
   let filterFavorites = [];
@@ -445,7 +442,7 @@ function filter() {
     let row = tbody.rows[i];
     let match = ((row.artistLower.indexOf(lower) != -1 ||
                   row.titleLower.indexOf(lower) != -1) &&
-                 (!diffCheck.checked ||
+                 (!diffSelector.enabled ||
                   row.difficulty == diffSelector.difficulty));
     if (match && filterFavorites.length > 0) {
       let inFavorites = false;
