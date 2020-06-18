@@ -57,9 +57,31 @@ GM_addStyle(`
   margin-right: 10px;
 }
 
-#verse-filter-text {
-  width: 180px;
+.verse-reset-textbox {
+  position: relative;
   color: #444;
+}
+
+/* Firefox does not add a reset button to input type="search" */
+.verse-reset-textbox input {
+  padding-right: 16px;
+  width: 180px;
+}
+
+/* Hide reset button when box is empty */
+/*.verse-reset-textbox input:not(:valid) ~ span {
+  display: none;
+}*/
+
+.verse-reset-textbox span {
+  position: absolute;
+  top: 10px;
+  right: 0px;
+  width: 16px;
+  /*height: 16px;*/
+  font-size: 20px;
+  cursor: pointer;
+  color: #555;
 }
 
 #verse-table-div {
@@ -288,10 +310,13 @@ function init() {
   dialog.id = 'verse-filter-dialog';
   dialog.innerHTML = `
 <div id="verse-filter-bar">
-  <input id="verse-filter-text" type="text"
-    class="verse-in-focus"
-    title="Song/artist"
-    placeholder="Song or artist">
+  <span class="verse-reset-textbox">
+    <input id="verse-filter-text" type="text"
+      class="verse-in-focus"
+      title="Song/artist"
+      placeholder="Song or artist">
+    <span id="verse-filter-text-reset">X</span>
+  </span>
   <select id="verse-difficulty-selector" class="verse-difficulty-text verse-in-focus"
     title="Difficulty">
     <option data-seltext="Diffic.">Any</option>
@@ -386,15 +411,21 @@ function init() {
 
   filterText = document.getElementById('verse-filter-text');
   filterText.onkeyup = filter;
-  filterText.onclick = (e => filterText.select());
+  filterText.onclick = (() => filterText.select());
   expandButton = document.getElementById('verse-expand-button');
-  filterText.onfocus = (_ => {
+  filterText.onfocus = (() => {
     showTable();
   });
-  expandButton.onclick = (_ => {
+  expandButton.onclick = (() => {
     toggleTable();
   });
 
+  filterTextReset = document.getElementById('verse-filter-text-reset');
+  filterTextReset.onclick = (() => {
+    filterText.value = '';
+    filterText.focus();
+  });
+  
   diffSelector = document.getElementById('verse-difficulty-selector');
   diffSelector.classList.add('verse-inactive');
   diffSelector.difficulty = 0;
