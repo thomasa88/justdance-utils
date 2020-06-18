@@ -2,7 +2,7 @@
 // @name Verse
 // @description Search all Just Dance Now songs in the dance room
 // @version 1.2.1
-// @license GNU GPL v3. Copyright Thomas Axelsson 2019
+// @license GNU GPL v3. Copyright Thomas Axelsson 2020
 // @homepageURL https://github.com/thomasa88/justdance-utils
 // @namespace thomasa88
 // @match *://justdancenow.com/
@@ -31,7 +31,7 @@
 // along with this userscript.  If not, see <https://www.gnu.org/licenses/>.
 //
 
-//RESOURCE_URL = 'https://raw.githubusercontent.com/thomasa88/justdance-utils/master/verse-resources'
+RESOURCE_URL = 'https://raw.githubusercontent.com/thomasa88/justdance-utils/master/verse-resources'
 
 GM_addStyle(`
 #verse-filter-dialog {
@@ -54,7 +54,7 @@ GM_addStyle(`
 }
 
 #verse-filter-bar > * {
-  margin-right: 10px;
+  margin-right: 10px !important;
 }
 
 #verse-filter-text {
@@ -87,7 +87,6 @@ GM_addStyle(`
   border-width: 1px 0px 1px 0px;
   border-color: #ffdaa3;
   border-style: solid;
-  color: #444;
   vertical-align: middle;
 }
 
@@ -121,17 +120,32 @@ GM_addStyle(`
 }
 
 #verse-difficulty-selector {
-  /*padding: 0px 5px 0px 5px;*/
-  border-radius: 5px;
-  box-sizing: unset;
-  /*background: #ffffff33;*/
-  height: 25px;
-  display: flex;
-  align-items: center;
+  /*all: initial;*/
+  /* Restore from site CSS */
+  width: 60px;
+  min-width: initial;
+  font-size: 15px;
+  -webkit-appearance: menulist;
+  -moz-appearance: menulist;
+  appearance: menulist;
+  background: white;
+
+  /* Our styling */
 }
 
-#verse-difficulty-selector.verse-active {
-  /*background: #ffffff55;*/
+.verse-difficulty-text {
+  padding-bottom: 3px;
+  letter-spacing: -5px;
+}
+
+/* Get rid of dashed focus ring in Firefox */
+#verse-difficulty-selector:-moz-focusring {
+  color: transparent;
+  text-shadow: 0 0 0 #000;
+}
+
+#verse-difficulty-selector.verse-inactive {
+  letter-spacing: unset;
 }
 
 .verse-button {
@@ -140,7 +154,7 @@ GM_addStyle(`
 }
 
 .verse-button.verse-disabled, .verse-inactive {
-  opacity: 40%;
+  opacity: 40% !important;
 }
 
 .verse-diff-button {
@@ -171,7 +185,7 @@ GM_addStyle(`
 }
 
 .verse-invert-color {
-  filter: invert(100%);
+  filter: invert(75%);
 }
 `);
 
@@ -273,9 +287,17 @@ function init() {
   <input id="verse-filter-text" type="text"
     title="Song/artist"
     placeholder="Song or artist">
-  <span id="verse-difficulty-selector"></span>
+  <select id="verse-difficulty-selector" class="verse-difficulty-text"
+    title="Difficulty">
+    <option data-seltext="Diffic.">Any</option>
+    <option data-seltext="❚">❚ Easy</option>
+    <option data-seltext="❚❚">❚❚ Normal</option>
+    <option data-seltext="❚❚❚">❚❚❚ Hard</option>
+    <option data-seltext="❚❚❚❚">❚❚❚❚ Extreme</option>
+    <option selected="selected" hidden>	</option>
+  </select>
   <span id="verse-favorites"></span>
-  <span id="verse-random-button" class="verse-button" title="Random song from matches">?!</span>
+  <span id="verse-random-button" class="verse-button" title="Pick random song from matches">?!</span>
   <span class="verse-spacer"></span>
   <span id="verse-expand-button" class="verse-expand-button verse-expand-hidden" title="Show/hide list"></span>
 </div>
@@ -312,8 +334,10 @@ function init() {
     
     artist.innerText = song.artist;
     title.innerText = song.name;
+
+    difficulty.classList.add('verse-difficulty-text');
     if (song.difficulty) {
-      difficulty.innerText = "●".repeat(song.difficulty);
+      difficulty.innerText = "❚".repeat(song.difficulty);
     } else {
       difficulty.innerHTML = "&nbsp;";
     }
@@ -324,7 +348,7 @@ function init() {
       if (i == 0) {
         span.style.backgroundImage = `url(${RESOURCE_URL}/favorite-mobile-white.svg)`;
         span.onclick = (e => {
-          alert('User favorites can only be modified in the mobile app');
+          alert('User favorites can only be modified in the mobile app.');
           e.stopPropagation();
         });
       } else {
@@ -367,31 +391,19 @@ function init() {
   });
 
   diffSelector = document.getElementById('verse-difficulty-selector');
-  diffSelector.difficulty = 2;
-  diffSelector.enabled = false;
-  for (let i = 1; i < 5; i++) {
-    let span = document.createElement('span');
-    span.classList.add('verse-button');
-    span.classList.add('verse-diff-button');
-    for (let diffName in DIFFICULTY_MAP) {
-      if (DIFFICULTY_MAP[diffName] == i) {
-        span.title = 'Difficulty: ' + diffName;
-        break;
-      }
-    }
-    span.onclick = (e => {
-      if (diffSelector.enabled && diffSelector.difficulty == i) {
-        // Disable filtering if clicking same difficulty twice
-        diffSelector.enabled = false;
-      } else {
-        diffSelector.enabled = true;
-        diffSelector.difficulty = i;
-      }
-      showTable();
-      filter();
-    });
-    diffSelector.appendChild(span);
-  }
+  diffSelector.classList.add('verse-inactive');
+  diffSelector.difficulty = 0;
+  let textIndex = diffSelector.options.length - 1;
+  let textOption = diffSelector.options[textIndex];
+  textOption.text = diffSelector.options[diffSelector.difficulty].getAttribute('data-seltext');
+  diffSelector.onchange = (e => {
+    diffSelector.difficulty = diffSelector.selectedIndex;
+    diffSelector.selectedIndex = textIndex;
+    textOption.text = diffSelector.options[diffSelector.difficulty].getAttribute('data-seltext');
+    diffSelector.classList.toggle('verse-inactive', diffSelector.difficulty == 0);
+    showTable();
+    filter();
+  });
 
   let randomButton = document.getElementById('verse-random-button');
   randomButton.onclick = randomize;
@@ -423,14 +435,7 @@ function init() {
 function filter() {
   updateTableUserFavorites();
 
-  diffSelector.classList.toggle('verse-active', diffSelector.enabled);
-  for (let i = 1; i < diffSelector.childNodes.length + 1; i++) {
-    diffSelector.childNodes[i-1].classList.toggle('verse-inactive',
-                                                  (i > diffSelector.difficulty &&
-                                                  diffSelector.enabled));
-    diffSelector.childNodes[i-1].classList.toggle('verse-disabled',
-                                                  !diffSelector.enabled);
-  }
+  diffSelector.classList.toggle('verse-active', diffSelector.difficulty != 0);
 
   filterText.classList.toggle('verse-inactive', filterText.value.length == 0);
 
@@ -451,7 +456,7 @@ function filter() {
     let row = tbody.rows[i];
     let match = ((row.artistLower.indexOf(lower) != -1 ||
                   row.titleLower.indexOf(lower) != -1) &&
-                 (!diffSelector.enabled ||
+                 (diffSelector.difficulty == 0 ||
                   row.difficulty == diffSelector.difficulty));
     if (match && filterFavorites.length > 0) {
       let inFavorites = false;
