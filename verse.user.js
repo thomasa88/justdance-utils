@@ -60,6 +60,7 @@ GM_addStyle(`
 .verse-reset-textbox {
   position: relative;
   color: #444;
+  display: flex;
 }
 
 /* Firefox does not add a reset button to input type="search" */
@@ -75,7 +76,7 @@ GM_addStyle(`
 
 .verse-reset-textbox span {
   position: absolute;
-  top: 12px;
+  top: 25%; /* Kinda OK in both Firefox and Chrome */
   right: 4px;
   width: 16px;
   height: 16px;
