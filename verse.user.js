@@ -31,7 +31,7 @@
 // along with this userscript.  If not, see <https://www.gnu.org/licenses/>.
 //
 
-RESOURCE_URL = 'https://raw.githubusercontent.com/thomasa88/justdance-utils/master/verse-resources'
+RESOURCE_URL = GM_getValue('resource-url', 'https://raw.githubusercontent.com/thomasa88/justdance-utils/master/verse-resources');
 
 GM_addStyle(`
 #verse-filter-dialog {
