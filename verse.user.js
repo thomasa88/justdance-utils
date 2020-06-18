@@ -75,13 +75,19 @@ GM_addStyle(`
 
 .verse-reset-textbox span {
   position: absolute;
-  top: 10px;
-  right: 0px;
+  top: 12px;
+  right: 4px;
   width: 16px;
-  /*height: 16px;*/
+  height: 16px;
   font-size: 20px;
   cursor: pointer;
   color: #555;
+  background-image: url(${RESOURCE_URL}/text-clear-white.svg);
+  background-size: cover;
+  background-position: left;
+  background-repeat: no-repeat;
+  filter: invert(50%);
+  opacity: 40%;
 }
 
 #verse-table-div {
@@ -144,7 +150,7 @@ GM_addStyle(`
 #verse-difficulty-selector {
   /*all: initial;*/
   /* Restore from site CSS */
-  width: 60px;
+  width: 75px; /* Make it wide enough for Chrome */
   min-width: initial;
   font-size: 15px;
   -webkit-appearance: menulist;
@@ -215,12 +221,25 @@ GM_addStyle(`
   background-image: url(${RESOURCE_URL}/pick-random-white.svg);
 }
 
+.verse-reset-button {
+  width: 15px;
+  height: 15px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-image: url(${RESOURCE_URL}/trash-white.svg);
+}
+
 .verse-spacer {
   flex-grow: 2;
 }
 
 .verse-invert-color {
   filter: invert(75%);
+}
+
+.verse-para-space {
+  margin-bottom: 12px;
 }
 `);
 
@@ -239,12 +258,14 @@ sortedSongs = [];
 favorites = {};
 
 filterText = null;
+filterTextBox = null;
 diffSelector = null;
 favoriteSelector = null;
 tbody = null;
 tdiv = null;
 noMatchTable = null;
 expandButton = null;
+resetButton = null;
 
 function log(msg) {
   console.log('Verse:', msg);
@@ -319,12 +340,13 @@ function init() {
   dialog.id = 'verse-filter-dialog';
   dialog.innerHTML = `
 <div id="verse-filter-bar">
-  <span class="verse-reset-textbox">
+  <span id="verse-reset-button" class="verse-reset-button verse-button verse-inactive" title="Reset the filter"></span>
+  <span id="verse-filter-textbox" class="verse-reset-textbox">
     <input id="verse-filter-text" type="text"
       class="verse-in-focus"
       title="Song/artist"
       placeholder="Song or artist">
-    <span id="verse-filter-text-reset">X</span>
+    <span id="verse-filter-text-reset"></span>
   </span>
   <select id="verse-difficulty-selector" class="verse-difficulty-text verse-in-focus"
     title="Difficulty">
@@ -344,7 +366,14 @@ function init() {
   <!-- Using a table for "no match" to get the same styling -->
   <table id="verse-filter-no-match-table" class="verse-filter-table verse-hidden">
     <tbody id="verse-filter-no-match-tbody">
-      <tr><td>No songs match the current filter</td></tr>
+      <tr>
+        <td>
+          <p class="verse-para-space">No matches.</p>
+          <p>
+            <span id="verse-filter-no-match-reset"><span class="verse-reset-button verse-button verse-invert-color" title="Reset the filter"></span> Reset the filter</span>
+          </p>
+        </td>
+      </tr>
     </tbody>
   </table>
   <table id="verse-filter-table" class="verse-filter-table">
@@ -418,6 +447,7 @@ function init() {
     row.onclick = (_ => unsafeWindow.jd.gui.songSelection.focusSong(song.id, 0));
   });
 
+  filterTextBox = document.getElementById('verse-filter-textbox');
   filterText = document.getElementById('verse-filter-text');
   filterText.onkeyup = filter;
   filterText.onclick = (() => filterText.select());
@@ -433,19 +463,17 @@ function init() {
   filterTextReset.onclick = (() => {
     filterText.value = '';
     filterText.focus();
+    filter();
   });
   
   diffSelector = document.getElementById('verse-difficulty-selector');
   diffSelector.classList.add('verse-inactive');
   diffSelector.difficulty = 0;
-  let textIndex = diffSelector.options.length - 1;
-  let textOption = diffSelector.options[textIndex];
-  textOption.text = diffSelector.options[diffSelector.difficulty].getAttribute('data-seltext');
+  diffSelector.textIndex = diffSelector.options.length - 1;
+  diffSelector.textOption = diffSelector.options[diffSelector.textIndex];
+  diffSelector.textOption.text = diffSelector.options[diffSelector.difficulty].getAttribute('data-seltext');
   diffSelector.onchange = (e => {
-    diffSelector.difficulty = diffSelector.selectedIndex;
-    diffSelector.selectedIndex = textIndex;
-    textOption.text = diffSelector.options[diffSelector.difficulty].getAttribute('data-seltext');
-    diffSelector.classList.toggle('verse-inactive', diffSelector.difficulty == 0);
+    setDiffselectorValue(diffSelector.selectedIndex);
     showTable();
     filter();
   });
@@ -474,19 +502,30 @@ function init() {
     favoriteSelector.appendChild(span);
   }
 
+  resetButton = document.getElementById('verse-reset-button');
+  resetButton.onclick = clearFilter;
+
+  let tableResetButton = document.getElementById('verse-filter-no-match-tbody');
+  tableResetButton.onclick = clearFilter;
+
   filter();
+}
+
+function setDiffselectorValue(difficulty) {
+  diffSelector.difficulty = difficulty;
+  diffSelector.selectedIndex = diffSelector.textIndex;
+  diffSelector.textOption.text = diffSelector.options[diffSelector.difficulty].getAttribute('data-seltext');
 }
 
 function filter() {
   updateTableUserFavorites();
 
-  diffSelector.classList.toggle('verse-active', diffSelector.difficulty != 0);
-
-  filterText.classList.toggle('verse-inactive', filterText.value.length == 0);
+  diffSelector.classList.toggle('verse-inactive', diffSelector.difficulty == 0);
+  filterTextBox.classList.toggle('verse-inactive', filterText.value.length == 0);
 
   let filterFavorites = [];
-  for (let i = 0; i < favoriteSelector.childNodes.length; i++) {
-    if (!favoriteSelector.childNodes[i].classList.contains('verse-inactive')) {
+  for (let i = 0; i < favoriteSelector.children.length; i++) {
+    if (!favoriteSelector.children[i].classList.contains('verse-inactive')) {
       if (i == 0) {
         filterFavorites.push(getPlayerFavs());
       } else {
@@ -494,6 +533,11 @@ function filter() {
       }
     }
   }
+
+  let isFiltering = (filterText.value.length > 0 ||
+                     diffSelector.difficulty != 0 ||
+                     filterFavorites.length > 0);
+  resetButton.classList.toggle('verse-inactive', !isFiltering);
 
   let lower = filterText.value.toLowerCase();
   let matchCount = 0;
@@ -521,6 +565,15 @@ function filter() {
     }
   }
   noMatchTable.classList.toggle('verse-hidden', matchCount != 0);
+}
+
+function clearFilter() {
+  filterText.value = '';
+  setDiffselectorValue(0);
+  for (let fav of favoriteSelector.children) {
+    fav.classList.add('verse-inactive');
+  }
+  filter();
 }
 
 function updateTableUserFavorites() {
