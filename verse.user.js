@@ -575,6 +575,7 @@ function clearFilter() {
     fav.classList.add('verse-inactive');
   }
   filter();
+  filterText.focus();
 }
 
 function updateTableUserFavorites() {
