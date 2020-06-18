@@ -163,8 +163,8 @@ GM_addStyle(`
 }
 
 .verse-difficulty-text {
-  padding-bottom: 3px;
-  letter-spacing: -5px;
+/*  padding-bottom: 3px; */
+/*  letter-spacing: -5px;*/
 }
 
 /* Get rid of dashed focus ring in Firefox */
