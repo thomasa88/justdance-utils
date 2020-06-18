@@ -206,6 +206,15 @@ GM_addStyle(`
   margin-right: 1px;
 }
 
+#verse-random-button {
+  width: 23px;
+  height: 23px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-image: url(${RESOURCE_URL}/pick-random-white.svg);
+}
+
 .verse-spacer {
   flex-grow: 2;
 }
@@ -327,7 +336,7 @@ function init() {
     <option selected="selected" hidden>	</option>
   </select>
   <span id="verse-favorites"></span>
-  <span id="verse-random-button" class="verse-button" title="Pick random song from matches">?!</span>
+  <span id="verse-random-button" class="verse-button" title="Pick random song from matches"></span>
   <span class="verse-spacer"></span>
   <span id="verse-expand-button" class="verse-expand-button verse-expand-hidden" title="Show/hide list"></span>
 </div>
