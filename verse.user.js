@@ -54,7 +54,7 @@ GM_addStyle(`
 }
 
 #verse-filter-bar > * {
-  margin-right: 10px !important;
+  margin-right: 10px;
 }
 
 #verse-filter-text {
@@ -154,7 +154,11 @@ GM_addStyle(`
 }
 
 .verse-button.verse-disabled, .verse-inactive {
-  opacity: 40% !important;
+  opacity: 40%;
+}
+
+.verse-in-focus:focus {
+  opacity: 100%;
 }
 
 .verse-diff-button {
@@ -285,9 +289,10 @@ function init() {
   dialog.innerHTML = `
 <div id="verse-filter-bar">
   <input id="verse-filter-text" type="text"
+    class="verse-in-focus"
     title="Song/artist"
     placeholder="Song or artist">
-  <select id="verse-difficulty-selector" class="verse-difficulty-text"
+  <select id="verse-difficulty-selector" class="verse-difficulty-text verse-in-focus"
     title="Difficulty">
     <option data-seltext="Diffic.">Any</option>
     <option data-seltext="❚">❚ Easy</option>
