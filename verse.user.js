@@ -445,8 +445,8 @@ function init() {
     }
 
     row.songId = song.id;
-    row.artistLower = song.artist.toLowerCase();
-    row.titleLower = song.name.toLowerCase();
+    row.artistSimple = simplifyString(song.artist);
+    row.titleSimple = simplifyString(song.name);
     row.difficulty = song.difficulty || 0;
     
     row.onclick = () => {
@@ -544,17 +544,18 @@ function filter() {
     }
   }
 
+  let simpleText = simplifyString(filterText.value);
+  
   let isFiltering = (filterText.value.length > 0 ||
                      diffSelector.difficulty != 0 ||
                      filterFavorites.length > 0);
   resetButton.classList.toggle('verse-inactive', !isFiltering);
 
-  let lower = filterText.value.toLowerCase();
   let matchCount = 0;
   for (let i = 0; i < tbody.rows.length; i++) {
     let row = tbody.rows[i];
-    let match = ((row.artistLower.indexOf(lower) != -1 ||
-                  row.titleLower.indexOf(lower) != -1) &&
+    let match = ((row.artistSimple.indexOf(simpleText) != -1 ||
+                  row.titleSimple.indexOf(simpleText) != -1) &&
                  (diffSelector.difficulty == 0 ||
                   row.difficulty == diffSelector.difficulty));
     if (match && filterFavorites.length > 0) {
@@ -575,6 +576,16 @@ function filter() {
     }
   }
   noMatchTable.classList.toggle('verse-hidden', matchCount != 0);
+}
+
+function simplifyString(string) {
+  return string.toLowerCase().
+    replace(/[-.,()!"]|^ +| +$/g, "").
+    replace(/&/g, "and"). // Replace shorter with longer, so e.g. "an" works
+    replace(/á/g, "a").
+    replace(/é/g, "e").
+    replace(/ó/g, "o").
+    replace(/ {2,}/g, " ");
 }
 
 function clearFilter() {
