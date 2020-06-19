@@ -9,7 +9,19 @@ The utilities are released under the GPL v3.0 license.
 
 Verse adds a search box to the dance room, for easy access to all available songs.
 
+### Installation
+
+First, make sure you have the [ViolentMonkey](https://violentmonkey.github.io/) add-on installed in your browser.
+
+Then, install Verse using this link:
+
 [Installation link](https://github.com/thomasa88/justdance-utils/raw/master/verse.user.js)
+
+ViolentMonkey will open the script. Click "Confirm installation" in the top right, to finish the installation.
+
+You can now open [Just Dance Now](https://justdancenow.com).
+
+### Screenshot
 
 ![](promotion.png)
 
