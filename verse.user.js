@@ -421,6 +421,7 @@ function init() {
         span.style.backgroundImage = `url(${RESOURCE_URL}/favorite-mobile-white.svg)`;
         span.onclick = (e => {
           alert('User favorites can only be modified in the mobile app.');
+          filterText.focus();
           e.stopPropagation();
         });
       } else {
@@ -448,7 +449,10 @@ function init() {
     row.titleLower = song.name.toLowerCase();
     row.difficulty = song.difficulty || 0;
     
-    row.onclick = (_ => unsafeWindow.jd.gui.songSelection.focusSong(song.id, 0));
+    row.onclick = () => {
+      unsafeWindow.jd.gui.songSelection.focusSong(song.id, 0);
+      filterText.focus();
+    };
   });
 
   filterTextBox = document.getElementById('verse-filter-textbox');
@@ -522,6 +526,8 @@ function setDiffselectorValue(difficulty) {
 }
 
 function filter() {
+  filterText.focus();
+  
   updateTableUserFavorites();
 
   diffSelector.classList.toggle('verse-inactive', diffSelector.difficulty == 0);
@@ -609,6 +615,8 @@ function randomize() {
   
   let randomPos = Math.floor(Math.random() * visible.length);
   visible[randomPos].click();
+
+  filterText.focus();
 }
 
 function loadFavorites() {
