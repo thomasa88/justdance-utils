@@ -13,9 +13,7 @@ Verse adds a search box to the dance room, for easy access to all available song
 
 First, make sure you have the [ViolentMonkey](https://violentmonkey.github.io/) add-on installed in your browser.
 
-Then, install Verse using this link:
-
-[Installation link](https://github.com/thomasa88/justdance-utils/raw/master/verse.user.js)
+Then, install Verse using this link: **[Installation link](https://github.com/thomasa88/justdance-utils/raw/master/verse.user.js)**
 
 ViolentMonkey will open the script. Click "Confirm installation" in the top right, to finish the installation.
 
@@ -23,7 +21,7 @@ You can now open [Just Dance Now](https://justdancenow.com).
 
 ### Screenshot
 
-![](promotion.png)
+![Verse](verse-promotion.png)
 
 ## Enter Room
 
