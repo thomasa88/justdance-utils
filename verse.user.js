@@ -51,6 +51,7 @@ GM_addStyle(`
 #verse-filter-bar {
   display: flex;
   align-items: center;
+  margin-bottom: 5px;
 }
 
 #verse-filter-bar > * {
@@ -190,10 +191,11 @@ GM_addStyle(`
   opacity: 100%;
 }
 
-.verse-diff-button {
+.verse-diff-bar {
   background-image: url(${RESOURCE_URL}/score-bar-white.svg);
   width: 9px;
   height: 17px;
+  display: inline-block;
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
@@ -236,7 +238,7 @@ GM_addStyle(`
 }
 
 .verse-invert-color {
-  filter: invert(75%);
+  filter: invert(60%);
 }
 
 .verse-para-space {
@@ -393,22 +395,23 @@ function init() {
   
   tdiv = document.getElementById('verse-table-div');
   tbody = document.getElementById('verse-filter-tbody');
+  let diffBar = document.createElement('span');
+  diffBar.classList.add('verse-diff-bar');
+  diffBar.classList.add('verse-invert-color');
   sortedSongs.forEach(song => {
     let row = tbody.insertRow();
     //let image = row.insertCell(-1);
     let artist = row.insertCell(-1);
     let title = row.insertCell(-1);
-    let difficulty = row.insertCell(-1);
+    let difficultyCell = row.insertCell(-1);
     let favoritesCell = row.insertCell(-1);
     
     artist.innerText = song.artist;
     title.innerText = song.name;
 
-    difficulty.classList.add('verse-difficulty-text');
-    if (song.difficulty) {
-      difficulty.innerText = "❚".repeat(song.difficulty);
-    } else {
-      difficulty.innerHTML = "&nbsp;";
+    difficultyCell.classList.add('verse-difficulty-text');
+    for (let i = 0; i < song.difficulty; i++) {
+      difficultyCell.appendChild(diffBar.cloneNode());
     }
 
     for (let i = 0; i < 4; i++) {
