@@ -23,6 +23,26 @@ You can now open [Just Dance Now](https://justdancenow.com).
 
 ![Verse](verse-promotion.png)
 
+## Song Counter
+
+Simple counter that counts the number of started songs in the current room.
+
+The counter is added to the top right of the screen.
+
+Note: Only songs started from the web browser are counted.
+
+![Song Counter](justdance-song-counter.png)
+
+### Installation
+
+First, make sure you have the [ViolentMonkey](https://violentmonkey.github.io/) add-on installed in your browser.
+
+Then, install the song counter using this link: **[Installation link](https://github.com/thomasa88/justdance-utils/raw/master/justdance-song-counter.user.js)**
+
+ViolentMonkey will open the script. Click "Confirm installation" in the top right, to finish the installation.
+
+You can now open [Just Dance Now](https://justdancenow.com).
+
 ## Enter Room
 
 ~~Automatically enters the dance room and dismisses the autoplay confirmation, when opening the Just Dance Now website.~~
