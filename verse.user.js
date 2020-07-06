@@ -638,15 +638,17 @@ function loadFavorites() {
 }
 
 function addFavorite(list, songId) {
-  if (favorites[list].indexOf(songId) == -1) {
+  let index = favorites[list].indexOf(songId);
+  if (index == -1) {
     favorites[list].push(songId);
     GM_setValue('favorites' + list, favorites[list]);
   }
 }
 
 function removeFavorite(list, songId) {
-  if (favorites[list].indexOf(songId) != -1) {
-    favorites[list].splice(songId, 1);
+  let index = favorites[list].indexOf(songId);
+  if (index != -1) {
+    favorites[list].splice(index, 1);
     GM_setValue('favorites' + list, favorites[list]);
   }
 }
