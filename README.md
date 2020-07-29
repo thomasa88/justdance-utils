@@ -48,3 +48,5 @@ You can now open [Just Dance Now](https://justdancenow.com).
 ~~Automatically enters the dance room and dismisses the autoplay confirmation, when opening the Just Dance Now website.~~
 
 This script is flawed. Clicking away the autoplay indication makes the songs not play. The functionality to enter a room automatically is not really needed, since the room is entered as soon as someone joins with a phone.
+
+![](https://www.lysator.liu.se/~axl/count/justdance-utils)
